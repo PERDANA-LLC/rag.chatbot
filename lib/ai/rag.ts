@@ -1,10 +1,10 @@
 
-import { createClient } from "@/utils/supabase/server";
+
 import { GeminiService } from "@/lib/ai/gemini";
 
 export const RAGService = {
     async chat(chatbotId: string, query: string): Promise<string> {
-        const supabase = await createClient();
+
 
         // 1. Fetch sources
         // Note: We use the service role or ensure the calling user has access.
@@ -54,7 +54,7 @@ export const RAGService = {
             return GeminiService.generateAnswer(query, []);
         }
 
-        const fileUris = sources.map((s: any) => s.content_uri).filter(Boolean) as string[];
+        const fileUris = sources.map((s) => s.content_uri).filter((uri): uri is string => typeof uri === 'string');
 
         // 2. Generate Answer
         // We might want to pass history here too?

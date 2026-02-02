@@ -37,3 +37,8 @@
 **Status**: ✅ Done
 **Objective**: Integrate Stripe for subscriptions and enforce usage limits. Final polish.
 **Requirements**: REQ-08
+
+### Phase 6: Advanced Auth & Admin
+**Status**: ⏳ Not Started
+**Objective**: Implement social login, 2FA, password recovery, and role-based access control with a dedicated admin dashboard.
+**Requirements**: REQ-09, REQ-10

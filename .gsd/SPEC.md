@@ -16,7 +16,15 @@ Empower website owners with a powerful, easy-to-integrate, and customizable chat
 - Proactive Chat Triggers (Post-v1)
 - CRM Integrations (HubSpot/Salesforce) (Post-v1)
 - Data sources beyond PDF, TXT, and Web Crawl (e.g. Notion, Drive) (Post-v1)
+- Data sources beyond PDF, TXT, and Web Crawl (e.g. Notion, Drive) (Post-v1)
 - Multi-language auto-detection (Post-v1)
+
+## Advanced Auth & Admin (Phase 6)
+- **REQ-09: Advanced Auth**: Google Social Login, Remember Me, TOTP 2FA, Password Reset.
+- **REQ-10: Admin Roles**:
+    - **Super Admin**: (ThomasPerdana@gmail.com) Immutable, full access to all orgs/users.
+    - **Admin**: Full access to own org features.
+    - **Admin Dashboard**: Super admin interface to CRUD users.
 
 ## Users
 - **Account Owners (Admins)**: SMBs, SaaS founders, Creators who set up the bot, manage subscriptions, and provide support.

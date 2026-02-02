@@ -12,6 +12,10 @@ const items = [
         href: "/dashboard/chatbots",
     },
     {
+        title: "Inbox",
+        href: "/dashboard/inbox",
+    },
+    {
         title: "Settings",
         href: "/dashboard/settings",
     },

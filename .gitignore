@@ -42,3 +42,6 @@ next-env.d.ts
 
 # my own documentation
 .privy
+
+# secrets
+client_secret*.json

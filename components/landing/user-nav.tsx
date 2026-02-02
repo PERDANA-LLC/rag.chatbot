@@ -19,9 +19,10 @@ import { LogOut, User as UserIcon, LayoutDashboard, Settings } from "lucide-reac
 
 interface UserNavProps {
     user: User;
+    role?: string | null;
 }
 
-export function UserNav({ user }: UserNavProps) {
+export function UserNav({ user, role }: UserNavProps) {
     const router = useRouter();
     const supabase = createClient();
 
@@ -51,6 +52,14 @@ export function UserNav({ user }: UserNavProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
+                    {role === "super_admin" && (
+                        <Link href="/admin">
+                            <DropdownMenuItem>
+                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                <span>Admin Dashboard</span>
+                            </DropdownMenuItem>
+                        </Link>
+                    )}
                     <Link href="/dashboard">
                         <DropdownMenuItem>
                             <LayoutDashboard className="mr-2 h-4 w-4" />

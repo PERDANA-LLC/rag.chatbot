@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 
 interface NavbarProps {
     user: User | null;
+    role?: string | null;
 }
 
-export function Navbar({ user }: NavbarProps) {
+export function Navbar({ user, role }: NavbarProps) {
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-14 items-center">
@@ -35,7 +36,7 @@ export function Navbar({ user }: NavbarProps) {
                     </div>
                     <nav className="flex items-center gap-2">
                         {user ? (
-                            <UserNav user={user} />
+                            <UserNav user={user} role={role} />
                         ) : (
                             <>
                                 <Link href="/login">

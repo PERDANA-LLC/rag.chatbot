@@ -9,9 +9,19 @@ export default async function Home() {
         data: { user },
     } = await supabase.auth.getUser();
 
+    let userRole = null;
+    if (user) {
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+        userRole = (profile as any)?.role;
+    }
+
     return (
         <div className="flex min-h-screen flex-col">
-            <Navbar user={user} />
+            <Navbar user={user} role={userRole} />
 
             <main className="flex-1">
                 <section className="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32">

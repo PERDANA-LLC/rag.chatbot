@@ -33,26 +33,79 @@ export async function POST(request: Request) {
             activeConversationId = conv.id;
         }
 
-        // 2. Store User Message
+        // 2. Check Conversation Status
+        const { data: conversation } = await supabase
+            .from("conversations")
+            .select("status")
+            .eq("id", activeConversationId)
+            .single();
+
+        const status = conversation?.status || 'ai';
+
+        // 3. Store User Message
         await supabase.from("messages").insert({
             conversation_id: activeConversationId,
             role: "user",
             content: message
         });
 
-        // 3. Generate Answer
+        if (status === 'active' || status === 'waiting') {
+            // Handoff mode: distinct logic
+            return NextResponse.json({
+                conversationId: activeConversationId,
+                message: null, // No AI response
+                status
+            });
+        }
+
+
+        // 4. Check Usage Limits
+        const { data: chatbot } = await supabase
+            .from('chatbots')
+            .select('org_id')
+            .eq('id', chatbotId)
+            .single();
+
+        if (!chatbot) {
+            return new NextResponse("Chatbot not found", { status: 404 });
+        }
+
+        const { data: org } = await supabase
+            .from('organizations')
+            .select('subscription_status, messages_count')
+            .eq('id', chatbot.org_id)
+            .single();
+
+        if (org) {
+            const limit = org.subscription_status === 'active' ? 100000 : 50;
+            if ((org.messages_count || 0) >= limit) {
+                return NextResponse.json({
+                    conversationId: activeConversationId,
+                    message: "Usage limit reached. Please upgrade your plan.",
+                    status: 'limit_reached'
+                });
+            }
+        }
+
+        // 5. Generate Answer (only if status is 'ai')
         const answer = await RAGService.chat(chatbotId, message);
 
-        // 4. Store Assistant Message
+        // 6. Store Assistant Message
         await supabase.from("messages").insert({
             conversation_id: activeConversationId,
             role: "assistant",
             content: answer
         });
 
+        // 7. Increment Usage
+        if (org) {
+            await supabase.from('organizations').update({ messages_count: (org.messages_count || 0) + 1 }).eq('id', chatbot.org_id);
+        }
+
         return NextResponse.json({
             conversationId: activeConversationId,
-            message: answer
+            message: answer,
+            status: 'ai'
         });
 
     } catch (error) {

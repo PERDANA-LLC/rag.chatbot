@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Send, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useRealtimeChat } from "@/hooks/use-realtime-chat";
+
 type Message = {
     id: string;
     role: "user" | "assistant";
@@ -20,11 +22,25 @@ export function ChatInterface({
     chatbotId: string;
     initialMessages?: Message[];
 }) {
-    const [messages, setMessages] = useState<Message[]>(initialMessages);
+    const [conversationId, setConversationId] = useState<string | null>(null);
+    const { messages: realtimeMessages } = useRealtimeChat(conversationId);
+
+    // We combine initial messages (history) with realtime messages
+    // Ideally, realtimeMessages should handle all messages if we pass conversationId. 
+    // But initially conversationId is null.
+    // So we rely on local 'messages' state until conversationId is established?
+    // Actually, once conversationId is established, useRealtimeChat fetches all messages.
+    // So distinct modes:
+    // 1. No conversation -> local state
+    // 2. Conversation -> realtime state
+
+    const [localMessages, setLocalMessages] = useState<Message[]>(initialMessages);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [conversationId, setConversationId] = useState<string | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const [status, setStatus] = useState<'ai' | 'waiting' | 'active'>('ai');
+
+    const messages = conversationId ? realtimeMessages : localMessages;
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -36,13 +52,17 @@ export function ChatInterface({
         e.preventDefault();
         if (!input.trim() || isLoading) return;
 
-        const userMessage: Message = {
-            id: Date.now().toString(),
-            role: "user",
-            content: input,
-        };
+        const content = input;
 
-        setMessages((prev) => [...prev, userMessage]);
+        // Optimistic update for local only (if no conversation yet)
+        if (!conversationId) {
+            setLocalMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                role: 'user',
+                content
+            }]);
+        }
+
         setInput("");
         setIsLoading(true);
 
@@ -52,7 +72,7 @@ export function ChatInterface({
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     chatbotId,
-                    message: userMessage.content,
+                    message: content,
                     conversationId,
                 }),
             });
@@ -61,36 +81,75 @@ export function ChatInterface({
 
             const data = await res.json();
 
-            if (data.conversationId) {
+            if (data.conversationId && !conversationId) {
                 setConversationId(data.conversationId);
             }
 
-            const botMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: "assistant",
-                content: data.message,
-            };
+            if (data.status) {
+                setStatus(data.status);
+            }
 
-            setMessages((prev) => [...prev, botMessage]);
+            // If message is returned (AI response), add it.
+            // But if we switched to realtime (conversationId set), the hook will pick it up.
+            // The hook subscribes to INSERTs.
+            // The API inserts the AI message.
+            // So we might duplicate if we manually add it AND hook adds it.
+            // So if conversationId is set, DO NOT manually add response.
+
+            if (!data.conversationId && data.message) {
+                // Fallback if no conversation ID returned (unlikely)
+                setLocalMessages(prev => [...prev, {
+                    id: (Date.now() + 1).toString(),
+                    role: 'assistant',
+                    content: data.message
+                }]);
+            }
+
         } catch (error) {
             console.error(error);
-            // Could show error toast
         } finally {
             setIsLoading(false);
         }
     }
 
+    async function requestAgent() {
+        if (!conversationId) return; // Must start chat first? Or validation needed.
+
+        try {
+            // We can call a server action or an API route to update status.
+            // For now, let's reuse a simple API or supabase client if available.
+            // Since this is a client component, we can import createClient.
+            const { createClient } = await import("@/utils/supabase/client");
+            const supabase = createClient();
+
+            await (supabase.from("conversations") as any).update({ status: 'waiting' }).eq('id', conversationId);
+            setStatus('waiting');
+        } catch (e) {
+            console.error("Failed to request agent", e);
+        }
+    }
+
     return (
         <div className="flex flex-col h-screen bg-background text-foreground">
-            {/* Header (Optional, maybe hidden in embedding if parent handles it) */}
-            <div className="p-4 border-b bg-card flex items-center gap-2 shadow-sm">
-                <div className="bg-primary/10 p-2 rounded-full">
-                    <Bot className="h-5 w-5 text-primary" />
+            {/* Header */}
+            <div className="p-4 border-b bg-card flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-2">
+                    <div className="bg-primary/10 p-2 rounded-full">
+                        <Bot className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-sm">AI Support</h3>
+                        <p className="text-xs text-muted-foreground">
+                            {status === 'ai' ? 'Ask me anything' :
+                                status === 'waiting' ? 'Waiting for agent...' : 'Talking to Agent'}
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h3 className="font-semibold text-sm">AI Support</h3>
-                    <p className="text-xs text-muted-foreground">Ask me anything</p>
-                </div>
+                {status === 'ai' && conversationId && (
+                    <Button size="sm" variant="outline" onClick={requestAgent}>
+                        Talk to Human
+                    </Button>
+                )}
             </div>
 
             {/* Messages */}
@@ -113,7 +172,7 @@ export function ChatInterface({
                         {m.content}
                     </div>
                 ))}
-                {isLoading && (
+                {isLoading && !conversationId && (
                     <div className="flex w-max max-w-[80%] flex-col gap-2 rounded-lg px-3 py-2 text-sm bg-muted text-muted-foreground">
                         <span className="animate-pulse">Thinking...</span>
                     </div>
@@ -127,10 +186,10 @@ export function ChatInterface({
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Type your message..."
-                        disabled={isLoading}
+                        disabled={isLoading && !conversationId}
                         className="flex-1"
                     />
-                    <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+                    <Button type="submit" size="icon" disabled={(isLoading && !conversationId) || !input.trim()}>
                         <Send className="h-4 w-4" />
                         <span className="sr-only">Send</span>
                     </Button>

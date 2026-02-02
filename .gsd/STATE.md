@@ -3,14 +3,14 @@
 > **Updated**: 2026-02-01
 
 ## Current Position
-- **Phase**: 3 (The Embeddable Widget)
-- **Status**: Planning
-- **Goal**: Build specific public-facing chat components
+- **Status**: Verification
+- **Goal**: Verify Stripe Integration.
 
 ## Recent Accomplishments
-- **Phase 1 Complete**: Foundation, Auth, Dashboard.
-- **Phase 2 Complete**: RAG Engine (Gemini/Firecrawl) + Knowledge Base UI.
+- **Phase 5.1 Complete**: Stripe Backend, Admin UI, Limits Enforced.
+- **Build Verification**: `npm run build` passed.
 
 ## Next Steps
-- Plan Phase 3 tasks (Embed Script, Widget UI, Chat API)
-- Execute Widget development
+- Apply DB Migration (`0004_stripe.sql`).
+- Set environment variables.
+- Manual verification of checkout and admin flow.

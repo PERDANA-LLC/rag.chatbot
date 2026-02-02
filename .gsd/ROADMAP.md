@@ -24,16 +24,16 @@
 **Requirements**: REQ-03, REQ-05
 
 ### Phase 3: The Embeddable Widget
-**Status**: 🏗️ In Progress
+**Status**: ✅ Done
 **Objective**: Build the standalone chat widget, generating embed codes, and enabling end-user chat APIs.
 **Requirements**: REQ-04, REQ-06, REQ-02 (Config)
 
 ### Phase 4: Human Handoff & Realtime
-**Status**: ⬜ Not Started
+**Status**: ✅ Done
 **Objective**: Implement the Agent Dashboard for live support and the logic to switch conversation modes.
 **Requirements**: REQ-07
 
 ### Phase 5: Monetization & Launch
-**Status**: ⬜ Not Started
+**Status**: 🏗️ In Progress
 **Objective**: Integrate Stripe for subscriptions and enforce usage limits. Final polish.
 **Requirements**: REQ-08

@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import Script from "next/script";
 import { Navbar } from "@/components/landing/navbar";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,11 @@ export default async function Home() {
 
     return (
         <div className="flex min-h-screen flex-col">
+            <Script
+                src="https://rag.thomasperdana.com/widget.js"
+                data-chatbot-id="1"
+                strategy="afterInteractive"
+            />
             <Navbar user={user} role={userRole} />
 
             <main className="flex-1">

@@ -10,6 +10,7 @@
 ## Recent Accomplishments
 - **All Phases Complete**: Foundation, RAG, Widget, Handoff, Monetization.
 - **Verification**: All builds passed.
+- **Update**: Added the chatbot widget script to the homepage.
 
 ## Next Steps
 - Production Deployment.
